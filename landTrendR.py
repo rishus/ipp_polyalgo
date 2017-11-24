@@ -38,7 +38,7 @@ def regress(t, u, model, K):
         print ('model not supported')
         
     
-    if (np.abs(np.linalg.det(np.dot(np.transpose(X), X))) < 0.001):
+    if (np.abs(np.linalg.det(np.dot(np.transpose(X), X))) < 0.000001):
         alpha_star = []
         return alpha_star
 
@@ -47,7 +47,7 @@ def regress(t, u, model, K):
     
     return alpha, fit
 
-@profile
+#profile_annotations:  65% of landTrendR
 def despike(vec_timestamps, vec_obs, despike_tol):
 
     vec_obs_updated = np.asarray(vec_obs, dtype='float')
@@ -65,8 +65,10 @@ def despike(vec_timestamps, vec_obs, despike_tol):
         prop_correction = [0 for i in range(Sfinal)]
         correction = [0 for i in range(0, Sfinal)]
         for i in range(1, Sfinal-1):     #no correctoin at the ends
+            #profile_annotations: 37%
             md = np.max(np.abs([fwd_diffs[i], bkwd_diffs[i]]))
             # what if both are zero?
+            #profile_annotations: 14.9 %
             if md <= np.finfo(float).eps:
                 md = central_diffs[i]
             #what if central_diffs is also 0? Then we have a 0/0 form.
@@ -799,7 +801,6 @@ def takeOutWeakest_alternate(vec_timestamps, vec_obs, v, vertVals):
         
     return updatedVerts
 
-
 def landTrend(tyeardoy, vec_obs_all, \
               ewma_trainingStart, ewma_trainingEnd, ewma_lowthreshold, ewma_K,\
               despike_tol, mu, nu, distwtfactor, recovery_threshold, \
@@ -818,8 +819,8 @@ def landTrend(tyeardoy, vec_obs_all, \
         bestModelInd = -9999
         my_models = []
         vecTrendFitFull = []
-        brkpt_summary = []
-        return bestModelInd, my_models, [0, num_obs-1], [], vecTrendFitFull, brkpt_summary #, [], []
+        #brkpt_summary = []
+        return bestModelInd, my_models, [0, num_obs-1], [tyeardoy[0], tyeardoy[-1]], vecTrendFitFull #, brkpt_summary #, [], []
     
     ind = 0
     num_days_gone = 0
@@ -1028,8 +1029,8 @@ def landTrend(tyeardoy, vec_obs_all, \
     brkptsGI[0] = 0     # to account for any missing observations in the beginning
     brkptsGI[-1] = num_obs - 1   # to account for any missing observations at the end
     brkPtYrDoy = [tyeardoy[i,:] for i in brkptsGI]
-#    for i in brkPtYrDoy:
-#        print (i)
+    # for i in brkPtYrDoy:
+    #     print (i)
 
     left = 0
     right = 1
@@ -1077,9 +1078,9 @@ def landTrend(tyeardoy, vec_obs_all, \
     for i in range(0, presInd[0]-1):
         vecTrendFitFull[i] = slope * vec_timestamps_edited[i] + intercept
     
-    brkpt_summary = [0 for i in range(num_obs)]
+#    brkpt_summary = [0 for i in range(num_obs)]
 #    print 'ltr brkpts:' , brkptsGI[1:]
-    for i in brkptsGI[1:-1]:
-        brkpt_summary[i] = 1.0  #vecTrendFitFull[i] - vecTrendFitFull[i-1]
+#    for i in brkptsGI[1:-1]:
+#        brkpt_summary[i] = 1.0  #vecTrendFitFull[i] - vecTrendFitFull[i-1]
 
-    return bestModelInd, my_models, brkptsGI, brkPtYrDoy , vecTrendFitFull, brkpt_summary  #, newInitVerts, vec_obs_despiked
+    return bestModelInd, my_models, brkptsGI, brkPtYrDoy , vecTrendFitFull #, brkpt_summary  #, newInitVerts, vec_obs_despiked

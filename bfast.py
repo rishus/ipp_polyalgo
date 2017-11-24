@@ -88,10 +88,9 @@ def critValuesTable(method, startRow, endRow):
     return critValTable
 
 
-def regress(t, u, model, K):
+def regress(M, t, u, model, K):
     
-    M = len(t)
-    if (model == 'linear'):
+    if (model == 'linear' or (M < 2*K+1)):
         ncols = 2
     elif (model == "harmon"):
         ncols = 2*K+1
@@ -102,36 +101,33 @@ def regress(t, u, model, K):
     X = np.zeros((M, ncols))
     X[:,0] = 1
         
-    if (model == 'linear'):
+    if (model == 'linear' or (M < 2*K + 1)):
         X[:, 1] = t
     elif (model == 'harmon'):
         for j in range(1, K+1):
-            X[:, 2*j-1] = np.cos(map(lambda x: x * j,  t[0:M]))   #np.cos(j * t_loc[0:M])
-            X[:, 2*j] = np.sin(map(lambda x: x * j,  t[0:M]))   #np.sin(j * t_loc[0:M])
+            X[:, 2*j-1] = np.cos(list(map(lambda x: x * j,  t[0:M])))   #np.cos(j * t_loc[0:M])
+            X[:, 2*j] = np.sin(list(map(lambda x: x * j,  t[0:M])))   #np.sin(j * t_loc[0:M])
 #            X[:, 2*j-1] = np.asarray([np.cos(j * t[i]) for i in range(0,M)])
 #            X[:, 2*j] = np.asarray([np.sin(j * t[i]) for i in range(0,M)])
     else:
         print("model not supported")
         
     
-    if (np.abs(np.linalg.det(np.dot(np.transpose(X), X))) < 0.001):
-        alpha_star = []
-        return alpha_star 
+    if (np.abs(np.linalg.det(np.dot(np.transpose(X), X))) < 0.000001):
+        alpha = []
+        return [0,0], np.zeros((M,))
 
     alpha = np.linalg.solve(np.dot(np.transpose(X), X), np.dot(np.transpose(X), u))
     fit = np.dot(X,alpha)
-    
-
     return alpha, fit
     
 
-def OLSMosum(t, obs, model, h, K):
+def OLSMosum(Sfinal, t, obs, model, h, K):
     
-    Sfinal = len(t)
     if (model == "linear"):
-        coeffs, fit = regress(t, obs, "linear", 0)
+        coeffs, fit = regress(Sfinal, t, obs, "linear", 0)
     elif (model == "harmon"):
-        coeffs, fit = regress(t, obs, "harmon", 0)
+        coeffs, fit = regress(Sfinal, t, obs, "harmon", 0)
     else:
         print("model not supported")
     
@@ -143,7 +139,6 @@ def OLSMosum(t, obs, model, h, K):
     cum_resids = np.cumsum(residuals)
     process = cum_resids[nh-1:] - np.concatenate(([0.0], cum_resids[0:Sfinal-nh]))
     process = process/(sigma*np.sqrt(Sfinal))
-
     return process
 
 
@@ -187,7 +182,7 @@ def calcPValue(x, method, k, h, fnal):
     
     return pval
     
-
+#profile_annotations: 99% of overall time 
 def recresids(t, u, begin_idx, model, deg):
 
     # remember, unlike Fortran, indices here will start from 0. 
@@ -228,7 +223,9 @@ def recresids(t, u, begin_idx, model, deg):
 #            vec_fitcoefs = np.dot(np.linalg.inv(r), p)
 #            vec_fitobs = np.dot(X, vec_fitcoefs)
             A = np.dot(X[0:curr_idx+1,:].T, X[0:curr_idx+1,:])   #becuz the last index does not get included
+            #profile_annotations: 19% of the time
             L = scipy.linalg.cho_factor(A, lower=False, overwrite_a=False,check_finite=True)
+            #profile_annotations: 31% of the time
             vec_fitcoefs = scipy.linalg.cho_solve(L, np.dot(X[0:curr_idx+1,:].T, u[0:curr_idx+1]), overwrite_b=False, check_finite=True)
             rank = np.linalg.matrix_rank(L)   #uses svd
             
@@ -243,6 +240,7 @@ def recresids(t, u, begin_idx, model, deg):
             i = 1
 
 #       y = scipy.linalg.cho_solve(L, X[i+1,:].T, overwrite_b=False, check_finite=True)
+        #profile_annotations: 32% of the overall time
         fr = 1 + X[curr_idx+1,:].dot(la.cho_solve(L, X[curr_idx+1,:].T, overwrite_b=False, check_finite=True))   #np.linalg.solve(r.T.dot(r) , X[i+1,:].T)
 #        print  'fr =', fr
         recres[curr_idx + 1] = (u[curr_idx+1] - np.dot(X[curr_idx+1, :], vec_fitcoefs))/np.sqrt(fr)
@@ -250,7 +248,7 @@ def recresids(t, u, begin_idx, model, deg):
     return recres
 
 
-def getRSStri(t, u, model, h, K):
+def getRSStri(Sfinal, t, u, model, h, K):
     
     # what is h? breakpoint spacing?
     # remember, unlike Fortran, indices here will start from 0. 
@@ -264,13 +262,14 @@ def getRSStri(t, u, model, h, K):
     elif (model == 'harmonic'):
         ncols = 2*K+1
 
-    Sfinal = len(t)
     RSStri =  [[0 for i in range(0,Sfinal)] for j in range(0,Sfinal)]
     brkpt_spacing = int(np.floor(Sfinal * h))
     if brkpt_spacing <= ncols:
-        print("minimum segment size must be greater than the number of regressors; resetting")
+        #print("minimum segment size must be greater than the number of regressors; resetting")
         brkpt_spacing = ncols + 2  #this number 2 is a random choice
-        
+    
+    #converting iterator to list
+    t = [x for x in t]
     for idx in range(0, Sfinal- brkpt_spacing +1):
         if (model == 'linear'):
             tmp = recresids(t[idx:], u[idx:], ncols, 'linear', 1)
@@ -305,7 +304,7 @@ def buildDynPrTable(RSSTri_full, numBrks, Sfinal, h):
     brkpt_spacing = int(np.floor(Sfinal*h))
 #    print brkpt_spacing
 #    print "brkpt_spacing = ", brkpt_spacing
-    matCost[:,:] = sys.maxint
+    matCost[:,:] = float("inf")
     matCost[0,brkpt_spacing:Sfinal-brkpt_spacing] = RSSTri_full[0][brkpt_spacing:Sfinal-brkpt_spacing]
     matPos[0,brkpt_spacing:Sfinal-brkpt_spacing] = [i for i in range(brkpt_spacing,Sfinal-brkpt_spacing)]
 #    print matCost[0,brkpt_spacing:Sfinal-brkpt_spacing]
@@ -316,7 +315,7 @@ def buildDynPrTable(RSSTri_full, numBrks, Sfinal, h):
             potIdxBegin = nbs * brkpt_spacing   #valid pos for nbs-1 breakpoints
             potIdxEnd = min(idx- brkpt_spacing, Sfinal-brkpt_spacing)
             #print "idx = ", idx, "potRange = ", potIdxBegin, ", ", potIdxEnd
-            vecCost = [sys.maxint for i in range(0, Sfinal)]
+            vecCost = [float("inf") for i in range(0, Sfinal)]
             for j in range(potIdxBegin, potIdxEnd):
                 vecCost[j] = matCost[nbs-1, j] + RSSTri_full[j][idx]
                 #if nbs == 1:
@@ -464,10 +463,11 @@ def bfast(tyeardoy, vec_obs_all, \
 
     #Corner case
     if (len(training_t) < 2 * ewma_K + 1):    #from ewmacd
-        this_band_summary = [-2222]*num_obs
-        brkPtsGlobalIndex = [-2222]*num_obs
-        brkpt_summary = [-2222]*num_obs
-        return [0, num_obs-1], brkPtsGlobalIndex, this_band_summary, brkpt_summary
+        brkPtsGlobalIndex = [0, num_obs-1]
+        brkPtYrDoy = [tyeardoy[i,:] for i in brkPtsGlobalIndex] 
+        vecTrendFitFull = [-2222]*num_obs
+   #     brkpt_summary = [-2222]*num_obs
+        return brkPtsGlobalIndex, brkPtYrDoy, vecTrendFitFull #, brkpt_summary
     
     ind = 0
     num_days_gone = 0
@@ -492,6 +492,7 @@ def bfast(tyeardoy, vec_obs_all, \
     vec_timestamps_edited_pres = vec_timestamps_edited[presInd]  
     vec_timestamps_pres =  tyeardoy[presInd, 1]   # t
     vec_timestamps_pres_harmonic = map(lambda x: x * 2 * np.pi/365.0,  vec_timestamps_pres)
+    vec_timestamps_pres_harmonic  = [x for x in vec_timestamps_pres_harmonic]
     Sfinal = len(vec_timestamps_pres)  # length of present data   
     
     #*********** actual processing starts here *******************
@@ -536,13 +537,13 @@ def bfast(tyeardoy, vec_obs_all, \
         u = vec_obs - vecSeasonFit  #[vec_obs[i] - vecSeasonFit[i]  for i in range(0,Sfinal)]
 
         # get OLS-MOSUM statistics
-        process = OLSMosum(vec_timestamps_edited_pres, u, "linear", h, 0)
+        process = OLSMosum(Sfinal, vec_timestamps_edited_pres, u, "linear", h, 0)
         pValTrend = calcPValue(np.abs(max(process)), "brownian bridge increments", numColsProcess, h, "max")
 #        print pValTrend, pval_thresh, h
         # get breakpoints in trend
 #        print 'it = ', it, ', pValTrend =', pValTrend, ', pval_thresh =', pval_thresh
         if pValTrend <= pval_thresh:
-            RSStri = getRSStri(vec_timestamps_edited_pres, u, "linear", h, 0)
+            RSStri = getRSStri(len(presInd), vec_timestamps_edited_pres, u, "linear", h, 0)
             a = buildDynPrTable(RSStri, numBrks, Sfinal, h)
             vecTrendBrks = np.concatenate(([0], a))
             vecTrendBrks = np.concatenate((vecTrendBrks, [Sfinal-1]))    
@@ -558,17 +559,17 @@ def bfast(tyeardoy, vec_obs_all, \
                 if (i == numTrendSegs-1):   #last segment
                     x = vec_timestamps_edited_pres[startPoint : endPoint+1]
                     y = u[startPoint : endPoint+1]
-                    linCoefs[i], vecTrendFit[startPoint:endPoint+1] = regress(x, y, "linear", 0)
+                    linCoefs[i], vecTrendFit[startPoint:endPoint+1] = regress(endPoint- startPoint +1, x, y, "linear", 0)
                 else:
                     x = vec_timestamps_edited_pres[startPoint : endPoint]
                     y = u[startPoint : endPoint]
-                    linCoefs[i], vecTrendFit[startPoint:endPoint] = regress(x, y, "linear", 0)
+                    linCoefs[i], vecTrendFit[startPoint:endPoint] = regress(endPoint-startPoint, x, y, "linear", 0)
         else:
             vecTrendBrks = [0, Sfinal-1]
             numTrendSegs = 1
             vecTrendFit = [0] * Sfinal
             linCoefs = [[0,0]]*numTrendSegs
-            linCoefs[0], vecTrendFit[0:Sfinal] = regress(vec_timestamps_edited_pres, u, "linear", 0)
+            linCoefs[0], vecTrendFit[0:Sfinal] = regress(len(presInd), vec_timestamps_edited_pres, u, "linear", 0)
 
 #######_____________________________________________________________________________________######
 #######_____________________________________________________________________________________######
@@ -577,12 +578,12 @@ def bfast(tyeardoy, vec_obs_all, \
         util = vec_obs - vecTrendFit
 
         # get OLS-MOSUM statistics for seasonal
-        process = OLSMosum(vec_timestamps_pres_harmonic, util, "harmon", h, harmonicDeg)
+        process = OLSMosum(Sfinal, vec_timestamps_pres_harmonic, util, "harmon", h, harmonicDeg)
         pValSeason = calcPValue(np.abs(max(process)), "brownian bridge increments", numColsProcess, h, "max")
         
         # get breakpoints in season
         if pValSeason <= pval_thresh:
-            RSStri = getRSStri(vec_timestamps_pres_harmonic, util, "harmonic", h, harmonicDeg)
+            RSStri = getRSStri(len(presInd), vec_timestamps_pres_harmonic, util, "harmonic", h, harmonicDeg)
             a = buildDynPrTable(RSStri, numBrks, Sfinal, h)   #gives us the indices of the brkpt locations.
             vecSeasonalBrks = np.concatenate(([0], a))
             vecSeasonalBrks = np.concatenate((vecSeasonalBrks, [Sfinal-1]))
@@ -592,23 +593,25 @@ def bfast(tyeardoy, vec_obs_all, \
             numSeasonSegs = numInternalBrksFinal + 1
             vecSeasonFit = [0] * Sfinal  
             harmCoefs = [[0,0]] * numSeasonSegs
-            for i in range(0, numSeasonSegs):
+            #iterator to list 
+
+            for i in range(numSeasonSegs):
                 startPoint = vecSeasonalBrks[i]
                 endPoint = vecSeasonalBrks[i+1]
                 if (i == numSeasonSegs-1):   #last segment
                     x = vec_timestamps_pres_harmonic[startPoint : endPoint+1]
                     y = util[startPoint : endPoint+1]
-                    harmCoefs[i], vecSeasonFit[startPoint:endPoint+1] = regress(x, y, "harmon", harmonicDeg)
+                    harmCoefs[i], vecSeasonFit[startPoint:endPoint+1] = regress(endPoint - startPoint + 1, x, y, "harmon", harmonicDeg)
                 else:
                     x = vec_timestamps_pres_harmonic[startPoint : endPoint]
                     y = util[startPoint : endPoint]
-                    harmCoefs[i], vecSeasonFit[startPoint:endPoint] = regress(x, y, "harmon", harmonicDeg)
+                    harmCoefs[i], vecSeasonFit[startPoint:endPoint] = regress(endPoint-startPoint, x, y, "harmon", harmonicDeg)
         else:
             vecSeasonalBrks = [0, Sfinal-1]
             numSeasonSegs = 1
             vecSeasonFit = [0] * Sfinal
             harmCoefs = [[0,0]] * numSeasonSegs
-            harmCoefs[0], vecSeasonFit[0:Sfinal] = regress(vec_timestamps_pres_harmonic, util, "harmon", harmonicDeg)
+            harmCoefs[0], vecSeasonFit[0:Sfinal] = regress(len(presInd), vec_timestamps_pres_harmonic, util, "harmon", harmonicDeg)
 
         # get the Hamming distance between the previous brkpts and current brkpts.
         hamTrend = hammingDist(vecTrendBrks, vecTrendBrksOld)
@@ -645,12 +648,12 @@ def bfast(tyeardoy, vec_obs_all, \
             vecTrendFitFull[startPoint:endPoint] = linCoefs[i][0] + linCoefs[i][1]*vec_timestamps_edited[startPoint:endPoint]
             
     brkPtYrDoy = [tyeardoy[i,:] for i in brkPtsGlobalIndex]
-    brkpt_summary = [0 for i in range(num_obs)]
+#    brkpt_summary = [0 for i in range(num_obs)]
 #    print 'bf brkpts:', brkPtsGlobalIndex[1:]
-    for i in brkPtsGlobalIndex[1:-1]:
-        brkpt_summary[i] = vecTrendFitFull[i] - vecTrendFitFull[i-1]
+#    for i in brkPtsGlobalIndex[1:-1]:
+#        brkpt_summary[i] = vecTrendFitFull[i] - vecTrendFitFull[i-1]
 
-    return brkPtsGlobalIndex, brkPtYrDoy, vecTrendFitFull, brkpt_summary
+    return brkPtsGlobalIndex, brkPtYrDoy, vecTrendFitFull #, brkpt_summary
 
 #    43265765020004 success
 #    87095642020004 success

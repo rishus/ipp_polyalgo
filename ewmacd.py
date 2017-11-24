@@ -373,7 +373,7 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
         this_band_summary = [-2222] * num_obs #for i in range(num_obs)]
         this_band_brkpts = [0, num_obs]
         brkpt_summary = [-2222]*num_obs
-        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary
+        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary, [0, num_obs]
     
     #*************** prepare data ***********************************        
 
@@ -402,7 +402,7 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
         this_band_summary = [-2222]*num_obs  # for i in range(num_obs)]
         this_band_brkpts = [0, num_obs]
         brkpt_summary = [-2222]*num_obs
-        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary
+        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary, [0, num_obs]
 
     
     # compute the three residuals for this band
@@ -416,7 +416,7 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
         this_band_summary = [-2222]* num_obs # for i in range(num_obs)]
         this_band_brkpts = [0, num_obs]
         brkpt_summary = [-2222]*num_obs
-        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary
+        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary, [0, num_obs]
 
     # get control limits
     tau = get_control_limits(sigma_Ihat, L, lam, mu, len(Ibar))
@@ -453,5 +453,5 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
 #        for i in range(0, len(this_band_summary)):
 #            this_pixel_summary.append(this_band_summary[i])
 
-    return  this_band_resids, this_band_summary, this_band_brkPtYrDoy, brkpt_summary
+    return  this_band_resids, this_band_summary, this_band_brkPtYrDoy, brkpt_summary, this_band_brkptsglobalIndex
 
