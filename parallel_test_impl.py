@@ -18,10 +18,10 @@ def partition_in_chunks(end, num_chunks):
     k, m = divmod(end, num_chunks)
     return [(i * k + min(i, m), (i + 1) * k + min(i + 1, m)) for i in range(num_chunks)]
 
-num_rows = 200 #7411  #1000 #50
-num_cols = 200 #8801  #1000 #50
+num_rows = 1000 #7411  #1000 #50
+num_cols = 1000 #8801  #1000 #50
 num_pixels = num_rows * num_cols  #7411 * 8801   #1000*1000
-input_file = '1837_Sandbox_200x200.timeOrder'    #'fullScene.timeOrder'   #    #'1836_Sandbox_1000x1000.timeOrder
+input_file = '1836_Sandbox_1000x1000.timeOrder'    #'fullScene.timeOrder'   #    #'1836_Sandbox_1000x1000.timeOrder
 out_file = input_file + "_ltr.out"
 num_partitions = 1
 num_time_points_per_pixel  = 198
@@ -68,7 +68,10 @@ def processInput(group_idx, pixel_chunks):
         
             col_id = int(pixel_id/num_rows)
             row_id = int(pixel_id%num_rows)
-        
+            if len(brkpts[2]) == 0:
+                print "for pixel =  ", pixel_id
+                print "num brkpts ", len(brkpts[0]), " ", brkpts[2]
+
             if len(brkpts[0]) > 0: #for ewma
                 ewma_brkpts_list.append((row_id, col_id, brkpts[0]))
             if len(brkpts[1]) > 0: #for ltr
@@ -97,14 +100,16 @@ def process_pixels():
     #odata = np.memmap(out_file, dtype='int16',  mode='w+', offset=0, shape=(num_pixels * num_time_points_per_pixel),)
     chunks = partition_in_chunks(num_pixels, num_partitions) #
     random.shuffle(chunks)
+    num_groups = num_partitions
     chunk_groups = partition_in_chunks(num_partitions, num_groups)
-    
+    print chunks[0:16]
+    print chunk_groups[0:16]
     inputs = range(num_groups)
     #print(chunks[-1])
-    # for partition_idx, partition_chunk in list(zip(inputs,chunks))[1061:1062]:
-    #     processInput(partition_idx, partition_chunk)
+    for partition_idx, chunk_group in list(zip(inputs,chunk_groups))[0:1]:
+        processInput(partition_idx, chunks[chunk_group[0]:chunk_group[1]])
     
-    par_res_out = Parallel(n_jobs=num_cores)(delayed(processInput)(partition_idx, chunks[chunk_group[0]:chunk_group[1]]) for (partition_idx, chunk_group) in zip(inputs, chunk_groups))
+    #par_res_out = Parallel(n_jobs=num_cores)(delayed(processInput)(partition_idx, chunks[chunk_group[0]:chunk_group[1]]) for (partition_idx, chunk_group) in zip(inputs, chunk_groups))
     
 
     # all_brkpts = defaultdict(lambda  : defaultdict(list))
