@@ -371,11 +371,13 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
         this_band_fit = [-2222] * (nc+ns+1) # for i in range(nc+ns+1)]
         this_band_resids = [-2222] * num_obs #for i in range(num_obs)]
         this_band_summary = [-2222] * num_obs #for i in range(num_obs)]
-        this_band_brkpts = [0, num_obs]
+        this_band_brkptsglobalIndex = [0, num_obs-1]
+	this_band_brkPtYrDoy = [tyeardoy[0,:], tyeardoy[num_obs-1,:] ]
         brkpt_summary = [-2222]*num_obs
-        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary, [0, num_obs]
+        return this_band_resids, this_band_summary, this_band_brkptsglobalIndex, \
+                      this_band_brkPtYrDoy, brkpt_summary
     
-    #*************** prepare data ***********************************        
+    #*************** prepare data *********************************** 
 
     D = vec_obs[presInd] #[vec_obs[i] for i in presInd]        # vec_obs_pres
     t = map(lambda x: x * 2 * np.pi/365,  tyeardoy[presInd, 1])
@@ -397,12 +399,14 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
     this_band_fit = lsfit(training_t, u, K, xbarlimit1)
     # Corner case:
     if (len(this_band_fit)==0):        
-        this_band_fit = [-2222 for i in range(nc+ns+1)]
-        this_band_resids = [-2222 for i in range(num_obs)]
-        this_band_summary = [-2222]*num_obs  # for i in range(num_obs)]
-        this_band_brkpts = [0, num_obs]
-        brkpt_summary = [-2222]*num_obs
-        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary, [0, num_obs]
+        this_band_fit = [-2222] * (nc+ns+1)
+        this_band_resids = [-2222]* num_obs# for i in range(num_obs)]                         
+        this_band_summary = [-2222]* num_obs # for i in range(num_obs)]
+        this_band_brkptsglobalIndex = [0, num_obs-1]
+	this_band_brkPtYrDoy = [tyeardoy[0,:], tyeardoy[num_obs-1,:] ]
+        #brkpt_summary = [-2222]*num_obs
+        return this_band_resids, this_band_summary, this_band_brkptsglobalIndex, \
+                    this_band_brkPtYrDoy #, brkpt_summary
 
     
     # compute the three residuals for this band
@@ -414,9 +418,10 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
         this_band_fit = [-2222] * (nc+ns+1)# for i in range(nc+ns+1)]
         this_band_resids = [-2222]* num_obs# for i in range(num_obs)]                         
         this_band_summary = [-2222]* num_obs # for i in range(num_obs)]
-        this_band_brkpts = [0, num_obs]
-        brkpt_summary = [-2222]*num_obs
-        return this_band_resids, this_band_summary, this_band_brkpts, brkpt_summary, [0, num_obs]
+        this_band_brkptsglobalIndex = [0, num_obs-1]
+        this_band_brkPtYrDoy = [tyeardoy[0,:], tyeardoy[num_obs-1, :] ]
+        #brkpt_summary = [-2222]*num_obs
+        return this_band_resids, this_band_summary, this_band_brkptsglobalIndex, this_band_brkPtYrDoy #, brkpt_summary
 
     # get control limits
     tau = get_control_limits(sigma_Ihat, L, lam, mu, len(Ibar))
@@ -453,5 +458,4 @@ def ewmacd(tyeardoy, vec_obs, K, xbarlimit1, xbarlimit2,  \
 #        for i in range(0, len(this_band_summary)):
 #            this_pixel_summary.append(this_band_summary[i])
 
-    return  this_band_resids, this_band_summary, this_band_brkPtYrDoy, brkpt_summary, this_band_brkptsglobalIndex
-
+    return  this_band_resids, this_band_summary, this_band_brkptsglobalIndex, this_band_brkPtYrDoy #, brkpt_summary

@@ -816,11 +816,13 @@ def landTrend(tyeardoy, vec_obs_all, \
 
     #Corner case
     if (len(training_t) < 2 * ewma_K + 1):    #from ewmacd
+        brkPtsGI = [0, num_obs-1]
+        brkPtYrDoy = [tyeardoy[i,:] for i in brkPtsGlobalIndex]
         bestModelInd = -9999
         my_models = []
-        vecTrendFitFull = []
-        #brkpt_summary = []
-        return bestModelInd, my_models, [0, num_obs-1], [tyeardoy[0], tyeardoy[-1]], vecTrendFitFull #, brkpt_summary #, [], []
+        vecTrendFitFull = [-2222]*num_obs
+        #brkpt_summary = [-2222]*num_obs
+        return bestModelInd, my_models, brkPtsGI, brkPtYrDoy, vecTrendFitFull #, brkpt_summary #, [], []
     
     ind = 0
     num_days_gone = 0

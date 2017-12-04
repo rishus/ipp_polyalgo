@@ -1,0 +1,145 @@
+1) 25 years, with bfast_numbrks=2, tau=3
+
+ew: 368, bf: 702, ltr:265, none: 529, insuffsicient: 0
+num_change_pixels =1698
+change_bf_says_change =1299
+change_bf_says_stable =399
+change_ew_says_change =1135
+change_ew_says_stable =563
+change_ltr_says_change =1666
+change_ltr_says_stable =32
+change_poly_says_change =974
+change_poly_says_stable =724
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =87
+stable_poly_says_change =79
+
+2) 25 years, with bfast_numbrks=4, tau=3
+
+ew: 675, bf: 345, ltr:469, none: 378, insuffsicient: 0
+num_change_pixels =1701
+change_bf_says_change =1303
+change_bf_says_stable =398
+change_ew_says_change =1138
+change_ew_says_stable =563
+change_ltr_says_change =1669
+change_ltr_says_stable =32
+change_poly_says_change =1114
+change_poly_says_stable =587
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =72
+stable_poly_says_change =94
+
+
+3) 25 years, with bfast_numbrks=4, tau=4
+
+ew: 709, bf: 362, ltr:523, none: 273, insuffsicient: 0
+num_change_pixels =1701
+change_bf_says_change =1303
+change_bf_says_stable =398
+change_ew_says_change =1138
+change_ew_says_stable =563
+change_ltr_says_change =1669
+change_ltr_says_stable =32
+change_poly_says_change =1208
+change_poly_says_stable =493
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =61
+stable_poly_says_change =105
+
+3) 25 years, with bfast_numbrks=2, tau=2
+
+ew: 317, bf: 582, ltr:183, none: 782, insuffsicient: 0
+num_change_pixels =1698
+change_bf_says_change =1299
+change_bf_says_stable =399
+change_ew_says_change =1135
+change_ew_says_stable =563
+change_ltr_says_change =1666
+change_ltr_says_stable =32
+change_poly_says_change =739
+change_poly_says_stable =959
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =105
+stable_poly_says_change =61
+ew: 317, bf: 582, ltr:183, none: 782, insuffsicient: 0
+num_change_pixels =1698
+change_bf_says_change =1299
+change_bf_says_stable =399
+change_ew_says_change =1135
+change_ew_says_stable =563
+change_ltr_says_change =1666
+change_ltr_says_stable =32
+change_poly_says_change =739
+change_poly_says_stable =959
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =105
+stable_poly_says_change =61
+ew: 317, bf: 582, ltr:183, none: 782, insuffsicient: 0
+num_change_pixels =1698
+change_bf_says_change =1299
+change_bf_says_stable =399
+change_ew_says_change =1135
+change_ew_says_stable =563
+change_ltr_says_change =1666
+change_ltr_says_stable =32
+change_poly_says_change =739
+change_poly_says_stable =959
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =105
+stable_poly_says_change =61
+ew: 317, bf: 582, ltr:183, none: 782, insuffsicient: 0
+num_change_pixels =1698
+change_bf_says_change =1299
+change_bf_says_stable =399
+change_ew_says_change =1135
+change_ew_says_stable =563
+change_ltr_says_change =1666
+change_ltr_says_stable =32
+change_poly_says_change =739
+change_poly_says_stable =959
+num_stable_pixels =166
+stable_bf_says_stable =85
+stable_bf_says_change =81
+stable_ew_says_stable =48
+stable_ew_says_change =118
+stable_ltr_says_stable =1
+stable_ltr_says_change =165
+stable_poly_says_stable =105
+stable_poly_says_change =61
